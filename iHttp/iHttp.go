@@ -1,4 +1,4 @@
-package github.com/seongmujeong/golib/iHttp
+package iHttp
 
 import (
 	"bytes"
