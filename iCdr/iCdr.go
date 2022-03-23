@@ -17,7 +17,7 @@ type Cdr struct {
 
 var pCdr *Cdr
 
-func stCdr() *Cdr {
+func StCdr() *Cdr {
 	if pCdr == nil {
 		pCdr = new(Cdr)
 	}
@@ -76,7 +76,7 @@ func CreateProducer(kafkaConn string) error {
 	config.Producer.Return.Successes = true
 
 	// sync producer
-	stCdr().prod, err = sarama.NewSyncProducer([]string{kafkaConn}, config)
+	StCdr().prod, err = sarama.NewSyncProducer([]string{kafkaConn}, config)
 
 	return err
 }
@@ -88,7 +88,7 @@ func PubMsg(topic string, e cloudevents.Event) error {
 		Topic: topic,
 		Value: sarama.StringEncoder(string(message[:])),
 	}
-	p, o, err := stCdr().prod.SendMessage(msg)
+	p, o, err := StCdr().prod.SendMessage(msg)
 	if err != nil {
 		fmt.Println("Error publish: ", err.Error())
 	}
