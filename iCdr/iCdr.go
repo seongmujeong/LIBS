@@ -24,32 +24,19 @@ func StCdr() *Cdr {
 	return pCdr
 }
 
-func SendCdr() bool {
-	bRet := false
-	err := CreateProducer("192.168.112.250:9092")
-	if err != nil {
-		fmt.Println("Error producer: ", err.Error())
-		os.Exit(1)
-	}
-
-	err = PubMsg("test", MakeCdr("f1d979bc-36f7-4e34-b965-fb5f1d21a044",
-		"ipron-cloud/flow-service",
-		"bridgetec.ipron.tracking.event.cdr",
-		"flow/61276d4c7790a01da4bac0fd",
-		map[string]interface{}{
-			"id":      "abcd",
-			"message": "Hello, test!",
-		},
-		map[string]interface{}{
-			"eventSubject": "call/61276d4c7790a01da4bac0fd",
-		},
-	))
-	if err == nil {
-		bRet = true
-	}
-
-	return bRet
-}
+/*
+	note
+		cloudevent Cdr 스펙에 맞게 Data 만들기
+	param
+		sId				: ID 정보
+		sSource			: Source 정보
+		sType			: Type 정보
+		sSubject		: SubJect 정보
+		mData			: Data 정보
+		mExt			: 추가 Key-value 정보
+	return
+		cloudevents.Event	: cloudevents.Event 구조체
+*/
 
 func MakeCdr(sId string, sSource string, sType string, sSubject string, mData map[string]interface{}, mExt map[string]interface{}) cloudevents.Event {
 	event := cloudevents.NewEvent()
@@ -64,6 +51,16 @@ func MakeCdr(sId string, sSource string, sType string, sSubject string, mData ma
 	}
 	return event
 }
+
+/*
+	note
+		Kafka Producer 등록
+	param
+		kafkaConn		: Kafka 접속 정보(IP:PORT)
+						  ex) 192.168.112.250:9092
+	return
+		error			: error 정보
+*/
 
 func CreateProducer(kafkaConn string) error {
 	// setup sarama log to stdout
@@ -81,9 +78,19 @@ func CreateProducer(kafkaConn string) error {
 	return err
 }
 
-func PubMsg(topic string, e cloudevents.Event) error {
+/*
+	note
+		Cdr 전송
+	param
+		topic			: Kafka Topic 정보
+		event			: event 정보 구조체
+	return
+		cloudevents.Event	: cloudevents.Event 구조체
+*/
+
+func PubMsg(topic string, event cloudevents.Event) error {
 	// publish sync
-	message, _ := e.MarshalJSON()
+	message, _ := event.MarshalJSON()
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
 		Value: sarama.StringEncoder(string(message[:])),
